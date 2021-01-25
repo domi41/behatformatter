@@ -1,18 +1,22 @@
 <?php
 /**
- * Twig renderer for Behat report
+ * Twig 2 renderer for Behat report
  */
 
 namespace elkan\BehatFormatter\Renderer;
 
-use Twig_Environment;
-use Twig_Loader_Filesystem;
-use Twig_Filter_Function;
+use elkan\BehatFormatter\Formatter\BehatFormatter;
+use Twig\Environment;
+use Twig\Error\LoaderError;
+use Twig\Error\RuntimeError;
+use Twig\Error\SyntaxError;
+use Twig\Loader\FilesystemLoader;
+use Twig\TwigFilter;
 
 class TwigRenderer implements RendererInterface {
 
     /**
-     * Renders before an exercice.
+     * Renders before an exercise.
      * @param object : BehatFormatter object
      * @return string  : HTML generated
      */
@@ -22,17 +26,19 @@ class TwigRenderer implements RendererInterface {
     }
 
     /**
-     * Renders after an exercice.
-     * @param object : BehatFormatter object
+     * Renders after an exercise.
+     * @param BehatFormatter $obj : BehatFormatter object (a context)
      * @return string  : HTML generated
+     * @throws LoaderError
+     * @throws RuntimeError
+     * @throws SyntaxError
      */
     public function renderAfterExercise($obj)
     {
-
         $templatePath = dirname(__FILE__).'/../../templates';
-        $loader = new Twig_Loader_Filesystem($templatePath);
-        $twig = new Twig_Environment($loader, array());
-        $twig->addFilter('var_dump', new Twig_Filter_Function('var_dump'));
+        $loader = new FilesystemLoader($templatePath);
+        $twig = new Environment($loader, array());
+        $twig->addFilter(new TwigFilter('var_dump', 'var_dump'));
         $print = $twig->render('index.html.twig',
             array(
                 'projectname'           => $obj->getProjectName(),
@@ -53,8 +59,8 @@ class TwigRenderer implements RendererInterface {
             )
         );
         $obj->copyTempScreenshotDirectory();
-        return $print;
 
+        return $print;
     }
 
     /**
